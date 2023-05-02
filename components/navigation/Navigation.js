@@ -18,7 +18,7 @@ export default function Navigation() {
       <Stack.Navigator>
         {currentUser? (
           <>
-            <Stack.Screen name="Home" component={Home} />
+            <Stack.Screen name="Home"   options={{ headerShown: false }} component={Home} />
             <Stack.Screen name="Resto" component={RestoHome} />
           </>
         ):(
