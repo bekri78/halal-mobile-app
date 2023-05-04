@@ -1,14 +1,46 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, ImageBackground } from "react-native";
+import { Text, View, Image, TextInput, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "react-native-paper";
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import { db } from "../firebase";
-import { collection, getDocs } from "firebase/firestore/lite";
-import "firebase/compat/firestore";
+// import { collection } from "firebase/firestore/lite";
+// import { getDocs } from "firebase/firestore/lite";
+// import "firebase/compat/firestore";
+import {
+  UserIcon,
+  ChevronDownIcon,
+  MagnifyingGlassIcon,
+  AdjustmentsVerticalIcon,
+} from "react-native-heroicons/outline";
+import Categories from "./Categories";
+import FeaturedRow from "./FeaturedRow";
+import React,{ useState, useEffect } from "react";
+import sanityClient from '../sanity'
+
 
 export default function Home() {
+
+const[featureCategories,setFeaturedCategories]= useState([])
  
+
+useEffect(()=>{
+  sanityClient.fetch(
+    `*[_type == "featured"] {
+      ...,
+      restaurants[]->{
+        ...,
+        dishes[]->
+      }
+    }
+  `
+  ).then(data=>{
+    setFeaturedCategories(data)
+    // setFeaturedCategories(data)
+  })
+},[])
+
 
   const getRestaurantsProches = async () => {
     const apiKey = process.env.REACT_APP_GOOGLE_MAP_API;
@@ -77,60 +109,64 @@ export default function Home() {
   };
 
   return (
-    <View style={styles.container}>
-      <ImageBackground
-        source={require("../assets/img/victoria.jpg")}
-        resizeMode="cover"
-        style={{ flex: 1 }}
-      >
-        <View
-          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-        >
-          <Text
-            style={{ textAlign: "center", fontSize: 24, fontWeight: "bold" }}
-          >
-            Halal food
+    <SafeAreaView className="bg-white pt-5">
+      {/* header */}
+      <View className=" flex-row pb-3 items-center space-x-2 px-4">
+        <Image
+          source={{ uri: "https://links.papareact.com/wru" }}
+          className="h-7 w-7 bg-gray-300 p-4 rounded-full"
+        />
+        <View className="flex-1">
+          <Text className="font-bold text-gray-400 text-xs">Deliver Now !</Text>
+
+          <Text className=" font-bold text-xl">
+            Current Location
+            <ChevronDownIcon size={20} color="#00CCBB" />
           </Text>
-
-          <Button
-            style={styles.btn}
-            icon="arrow-right-bold-circle"
-            mode="contained"
-            onPress={signOute}
-          >
-            Deconexion
-          </Button>
-          <Button
-            style={styles.btn}
-            icon="arrow-right-bold-circle"
-            mode="contained"
-            onPress={getData}
-          >
-            Get data
-          </Button>
-
-          <Button
-            style={styles.btn}
-            icon="arrow-right-bold-circle"
-            mode="contained"
-            onPress={getRestaurantsProches}
-          >
-            resto proche
-          </Button>
         </View>
-        <StatusBar style="auto" />
-      </ImageBackground>
-    </View>
+
+        <UserIcon size={35} color="#00CCBB" />
+      </View>
+
+      {/* search */}
+      <View className="flex-row items-center space-x-2 pb-2 mx-4">
+        <View className=" flex-row flex-1 space-x-2 bg-gray-200 p-3">
+          <MagnifyingGlassIcon size={20} color="gray" />
+          <TextInput
+            placeholder="Restaurants and cuisines"
+            keyboardType="default"
+            style={{ flex: 1, marginLeft: 10, fontSize: 16 }}
+          />
+        </View>
+        <AdjustmentsVerticalIcon color="#00CCBB" />
+      </View>
+
+      {/*body*/}
+      <ScrollView
+        className="
+     bg-gray-100"
+        contentContainerStyle={{
+          paddingBottom: 100,
+        }}
+      >
+        <Categories />
+
+
+{featureCategories?.map(category=>(
+  <FeaturedRow
+  key={category._id}
+  id={category._id}
+  title={category.name}
+  description={category.description}
+/>
+
+))}
+
+
+
+      
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  btn: {
-    display: "flex",
-    flexDirection: "row-reverse",
-  },
-});
